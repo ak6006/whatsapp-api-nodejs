@@ -1,16 +1,34 @@
-const app = require('./config/express')
-// const mongoose = require('mongoose')
-const config = require('./config/config')
+const dotenv = require('dotenv')
+const mongoose = require('mongoose')
 const logger = require('pino')()
+dotenv.config()
+
+const app = require('./config/express')
+const config = require('./config/config')
+
+const { Session } = require('./api/class/session')
+const connectToCluster = require('./api/helper/connectMongoClient')
+
 let server
 
-// mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
-//     logger.info('Connected to MongoDB')
-// })
+if (config.mongoose.enabled) {
+    mongoose.set('strictQuery', true);
+    mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
+        logger.info('Connected to MongoDB')
+    })
+}
 
-server = app.listen(config.port, () => {
-    logger.info(`Listening to port ${config.port}`)
+server = app.listen(config.port, async () => {
+    logger.info(`Listening on port ${config.port}`)
+    global.mongoClient = await connectToCluster(config.mongoose.url)
+    if (config.restoreSessionsOnStartup) {
+        logger.info(`Restoring Sessions`)
+        const session = new Session()
+        let restoreSessions = await session.restoreSessions()
+        logger.info(`${restoreSessions.length} Session(s) Restored`)
+    }
 })
+
 const exitHandler = () => {
     if (server) {
         server.close(() => {
@@ -37,4 +55,4 @@ process.on('SIGTERM', () => {
     }
 })
 
-module.exports = app
+module.exports = server

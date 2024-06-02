@@ -17,8 +17,11 @@ router.route('/mediaurl').post(keyVerify, loginVerify, controller.Mediaurl)
 router.route('/button').post(keyVerify, loginVerify, controller.Button)
 router.route('/contact').post(keyVerify, loginVerify, controller.Contact)
 router.route('/list').post(keyVerify, loginVerify, controller.List)
+router.route('/setstatus').put(keyVerify, loginVerify, controller.SetStatus)
 router
     .route('/mediabutton')
     .post(keyVerify, loginVerify, controller.MediaButton)
+router.route("/read").post(keyVerify, loginVerify, controller.Read)
+router.route("/react").post(keyVerify, loginVerify, controller.React)
 
 module.exports = router
